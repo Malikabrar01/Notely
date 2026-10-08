@@ -5,11 +5,19 @@ require("dotenv").config();
 
 const app = express();
 
-app.use(cors());
+// Needed on Render so rate limiting sees each user's real IP
+app.set("trust proxy", 1);
+
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",") : true,
+  })
+);
 app.use(express.json());
 
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/colleges", require("./routes/colleges"));
+app.use("/api/resources", require("./routes/resources"));
 
 app.get("/", (req, res) => {
   res.send("API is running...");

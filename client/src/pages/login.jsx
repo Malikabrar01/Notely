@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Mail, Lock, Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 import api from "../api";
 import { useAuth } from "../context/AuthContext";
+import AuthLayout, { Field } from "../components/AuthLayout";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const { saveSession } = useAuth();
   const navigate = useNavigate();
@@ -14,43 +16,41 @@ export default function Login() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    setError("");
     setBusy(true);
     try {
       const res = await api.post("/auth/login", form);
       saveSession(res.data);
+      toast.success(`Welcome back, ${res.data.user.name.split(" ")[0]}!`);
       navigate("/");
     } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong");
+      toast.error(err.response?.data?.message || "Could not log in");
     } finally {
       setBusy(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <form onSubmit={onSubmit} className="w-full max-w-sm bg-white p-6 rounded-xl shadow space-y-4">
-        <h1 className="text-2xl font-bold text-indigo-600">Notely</h1>
-        <p className="text-gray-500 text-sm">Log in to see your papers and notes</p>
+    <AuthLayout title="Welcome back" subtitle="Log in to see your papers and notes">
+      <form onSubmit={onSubmit} className="space-y-4">
+        <Field icon={Mail} name="email" type="email" placeholder="Email address"
+               value={form.email} onChange={onChange} required />
+        <Field icon={Lock} name="password" type="password" placeholder="Password"
+               value={form.password} onChange={onChange} required />
 
-        {error && <p className="text-red-600 text-sm">{error}</p>}
-
-        <input name="email" type="email" placeholder="Email" value={form.email}
-          onChange={onChange} required
-          className="w-full border rounded-lg px-3 py-2" />
-        <input name="password" type="password" placeholder="Password" value={form.password}
-          onChange={onChange} required
-          className="w-full border rounded-lg px-3 py-2" />
-
-        <button disabled={busy}
-          className="w-full bg-indigo-600 text-white rounded-lg py-2 font-semibold disabled:opacity-60">
+        <button
+          disabled={busy}
+          className="w-full inline-flex items-center justify-center gap-2 bg-indigo-600 text-white rounded-xl py-2.5
+                     font-semibold hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-60 transition"
+        >
+          {busy && <Loader2 size={16} className="animate-spin" />}
           {busy ? "Logging in..." : "Log in"}
         </button>
 
         <p className="text-sm text-center text-gray-500">
-          New here? <Link to="/signup" className="text-indigo-600 font-medium">Create account</Link>
+          New to Notely?{" "}
+          <Link to="/signup" className="text-indigo-600 font-medium hover:underline">Create an account</Link>
         </p>
       </form>
-    </div>
+    </AuthLayout>
   );
 }

@@ -18,9 +18,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   const saveSession = (data) => {
-    localStorage.setItem("token", data.token);
-    setUser(data.user);
-  };
+  localStorage.setItem("token", data.token);
+  setUser({ ...data.user, college: { name: data.user.college } });
+};
 
   const logout = () => {
     localStorage.removeItem("token");
